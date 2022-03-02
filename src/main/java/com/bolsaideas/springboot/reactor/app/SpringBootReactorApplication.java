@@ -6,6 +6,8 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import com.bolsaideas.springboot.reactor.app.models.Usuario;
+
 import reactor.core.publisher.Flux;
 
 @SpringBootApplication
@@ -21,15 +23,20 @@ public class SpringBootReactorApplication implements CommandLineRunner {
 	public void run(String... args) throws Exception {
 //		Flux<String> nombres = Flux.just("Adrián", "Ana", "Pedro").doOnNext(elemento -> System.out.println(elemento));
 //		nombres.subscribe();
-		Flux<String> nombres = Flux.just("Adrián", "Pepe", "Pedro", "Ana", "María").doOnNext(e -> {
-			if (e.isEmpty()) {
-				throw new RuntimeException("Nombres no pueden ser vacíos");
-			} else {
-				System.out.println(e);
-			}
-		});
+		Flux<Usuario> usuarios = Flux.just("Adrián", "Pepe", "Pedro", "Ana", "María")
+				.map(nombre -> new Usuario(nombre.toUpperCase(), null)).doOnNext(usuario -> {
+					if (usuario == null) {
+						throw new RuntimeException("Nombres no pueden ser vacíos");
+					} else {
+						System.out.println(usuario.getNombre());
+					}
+				}).map(u -> {
+					String nombre = u.getNombre().toLowerCase();
+					u.setNombre(nombre);
+					return u;
+				});
 //		nombres.subscribe(log::info);
-		nombres.subscribe(e -> log.info(e), error -> log.error(error.getMessage()), new Runnable() {
+		usuarios.subscribe(e -> log.info(e.getNombre()), error -> log.error(error.getMessage()), new Runnable() {
 			@Override
 			public void run() {
 				log.info("Ha finalizado la ejecucción del observable con éxito!");
